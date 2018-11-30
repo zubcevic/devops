@@ -9,7 +9,7 @@ shutdown() {
 		
 	fi
 	printf -- "Thank you for using devops tools\n"
-	printf -- "Copyright (c) Zubcevic.com 2017\n"
+	printf -- "Copyright (c) Zubcevic.com 2018\n"
 	exit $1
 
 }
@@ -21,6 +21,10 @@ fi
 getSoapAction() {
 echo "-H SOAPAction: $1"
 }
+
+d_headersonly="-I "
+d_followredirects="-L "
+
 
 getContentType() {
 case "$1" in 
@@ -41,7 +45,7 @@ esac
 # -s silent -L follow redirects -4 IPv4 -I only headers
 getCurlCommand() {
 local d_content_type=$(getContentType $3)
-local d_cmd="-f -I -L -4 -w \"%{http_code}\" -s -o /dev/null "
+local d_cmd="-w \"%{http_code}\" -s -o /dev/null "
 if [ "$2" != "GET" ];then
 local d_cmd="-X $2"
 fi
@@ -53,16 +57,28 @@ echo "$d_cmd"
 
 }
 
+runCurlCommand() {
+
 checkHomePageCommand=$(getCurlCommand http://www.github.com GET json)
 
 if [ "$d_dryrun" == "Y" ];then
 d_ret=$(echo curl $checkHomePageCommand)
 else 
-d_ret=$(curl $checkHomePageCommand 2>/dev/null)
+d_ret=$(curl $d_followredirects $checkHomePageCommand)
 fi
 
 echo "$d_ret"
-if [ "$d_ret" == "200" ];then
-printf "Site is up!\n"
-fi
+
+}
+
+result=$(runCurlCommand)
+echo $result
+
+cat test.json | sed "s/,/\n/g" | grep name | sed "s/:/ /g"|awk '{print $2}' | sed "s/\"//g"
+
+#sed "s/.* bla=\"\(.*\)\".*/\1/" | sed 's#.*/##' | sed 's/".*//'
+
+
+
+
 
