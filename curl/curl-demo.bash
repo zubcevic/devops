@@ -14,10 +14,6 @@ shutdown() {
 
 }
 
-if [ "$1" == "dryrun" ];then
-d_dryrun="Y"
-fi
-
 getSoapAction() {
 echo "-H SOAPAction: $1"
 }
@@ -44,37 +40,30 @@ esac
 # For testing JSON/SOAP or any other HTTP request
 # -s silent -L follow redirects -4 IPv4 -I only headers
 getCurlCommand() {
-local d_content_type=$(getContentType $3)
-local d_cmd="-w \"%{http_code}\" -s -o /dev/null "
+d_content_type=$(getContentType $3)
+#d_cmd="-w \"%{http_code}\" -s -o .tmpout "
 if [ "$2" != "GET" ];then
-local d_cmd="-X $2"
+d_cmd="-X $2"
 fi
-local d_cmd="$d_cmd -H \"Connection: Keep-Alive\" "
-local d_cmd="$d_cmd -H \"User-Agent: Bash\" "
-local d_cmd="$d_cmd -H \"$d_content_type\" $1 "
-
-echo "$d_cmd"
+d_cmd="$d_cmd -H \"Connection: Keep-Alive\" "
+d_cmd="$d_cmd -H \"User-Agent: Bash\" "
+d_cmd="$d_cmd -H \"$d_content_type\" $1 "
 
 }
 
-runCurlCommand() {
+d_opts="-s -o .tmpout --http1.1 "
+getCurlCommand https://httpbin.org/get?test=this+is+a+test GET json
 
-checkHomePageCommand=$(getCurlCommand http://www.github.com GET json)
-
-if [ "$d_dryrun" == "Y" ];then
-d_ret=$(echo curl $checkHomePageCommand)
-else 
-d_ret=$(curl $d_followredirects $checkHomePageCommand)
+if [ "$1" == "dryrun" ];
+then
+	alias curl
+	echo "curl $d_cmd"
+else
+	rm .tmpout > /dev/null 2>&1
+	eval "curl $d_opts $d_cmd > /dev/null"
+	cat .tmpout | sed "s/,/\n/g"  | grep 'test' |head -n 1| sed "s/:/ /g" |awk -F\" '{print $4}' 
 fi
-
-echo "$d_ret"
-
-}
-
-result=$(runCurlCommand)
-echo $result
-
-cat test.json | sed "s/,/\n/g" | grep name | sed "s/:/ /g"|awk '{print $2}' | sed "s/\"//g"
+#| sed "s/\"//g"
 
 #sed "s/.* bla=\"\(.*\)\".*/\1/" | sed 's#.*/##' | sed 's/".*//'
 
