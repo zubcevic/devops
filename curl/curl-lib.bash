@@ -2,16 +2,26 @@
 
 trap shutdown INT SIGTERM
 
+d_red=$'\033[0;31m'
+d_cyan=$'\033[0;36m'
+d_nc=$'\033[0m'
+d_green=$'\033[0;32m'
+
 shutdown() {
 
 	if [ "$1" != 0 ] ; then 
 		printf -- "\nExit $1: $2\n"
 		
 	fi
-	printf -- "Thank you for using devops tools\n"
-	printf -- "Copyright (c) Zubcevic.com 2018\n"
+	printf -- "${d_green}Thank you for using devops tools\n"
+	printf -- "Copyright (c) Zubcevic.com 2018${d_nc}\n"
 	exit $1
 
+}
+
+time_out() {
+	sleep $1
+	kill -TERM $2
 }
 
 getSoapAction() {
@@ -50,9 +60,6 @@ d_cmd="$d_cmd -H \"User-Agent: Bash\" "
 d_cmd="$d_cmd -H \"$d_content_type\" $1 "
 
 }
-
-export -f getCurlCommand
-
 
 
 
