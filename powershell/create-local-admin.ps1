@@ -1,3 +1,5 @@
+#Requires -RunAsAdministrator
+
 function Create-Local-Admin {
     param (
         [string] $NewLocalAdmin,
@@ -9,6 +11,7 @@ function Create-Local-Admin {
     process {
         New-LocalUser "$NewLocalAdmin" -Password $NewPassword -FullName "$NewLocalAdmin" -Description "local admin"
         Add-LocalGroupMember -Group "Administrators" -Member "$NewLocalAdmin"
+        Add-LocalGroupMember -Group "Remote Management Users" -Member "$NewLocalAdmin"
     }
     end {
 
